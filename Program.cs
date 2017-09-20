@@ -16,6 +16,11 @@ namespace MazeGenerator
             this.x = x;
             this.y = y;
         }
+
+        public override string ToString()
+        {
+            return $"{{{x}; {y}}}";
+        }
     }
 
     class Program
@@ -246,14 +251,16 @@ namespace MazeGenerator
             }
         }
 
-        static void GenerateMaze(BitArray matrix, int width, int height, Cell start, bool visualize = true, 
+        static Tuple<Cell,Cell> GenerateMaze(BitArray matrix, int width, int height, Cell start, bool visualize = true, 
             ConsoleColor currentColor = ConsoleColor.Green, ConsoleColor visitedColor = ConsoleColor.DarkGreen, 
             ConsoleColor stepBackColor = ConsoleColor.DarkCyan, ConsoleColor currentStepBackColor = ConsoleColor.Cyan,
             ConsoleColor deadEndColor = ConsoleColor.Magenta, ConsoleColor forkColor = ConsoleColor.DarkBlue)
         {
             BitArray visited = new BitArray(height * width);
             Stack<Cell> stack = new Stack<Cell>();
-            Random rnd = new Random();
+            Random rnd = new Random(1);
+            Graph graph = new Graph();
+            int distance = 0;
 
             bool Back = false;
 
@@ -268,6 +275,7 @@ namespace MazeGenerator
                 Task.Delay(60).Wait();
             }
 
+            Node curnode = null;
             do
             {
                 if (visualize)
@@ -300,9 +308,17 @@ namespace MazeGenerator
                         Console.SetCursorPosition(current.x, current.y);
                         Console.Write(' ');
 
-                        Back = false;
+                        
                     }
 
+                    if (Back)
+                    {
+                        graph.AddNodePos(current);
+                        graph.Associate(graph.Last, graph.PreLast, distance);
+                        distance = 0;
+                        Back = false;
+                    }
+                    
                     current = nei;
                 }
                 else if (stack.Count > 0)
@@ -316,6 +332,23 @@ namespace MazeGenerator
                         Console.Write(" ");
                         Task.Delay(2).Wait();
                     }
+
+                    if (!Back)
+                    {
+                        // пришли в тупик
+                        graph.AddNodePos(current);
+                        distance = 0;
+
+                        Back = true;
+                    }
+                    else if (graph.IsNode(current))
+                    {
+                        curnode = graph[current];
+                        graph.Associate(graph.Last, curnode, distance);
+                        distance = 0;
+                    }
+
+                    distance++;
 
                     var prevcur = current;
                     current = stack.Pop();
@@ -331,13 +364,15 @@ namespace MazeGenerator
                         Console.SetCursorPosition(current.x, current.y);
                         Console.Write(" ");
                         Task.Delay(2).Wait();
-                        Back = true;
                     }
                 }
                 else
                     break;
             }
             while (true);
+            graph.Associate(curnode, graph.AddNodePos(current), distance);
+
+            var farest = graph.GetFarest(); // FIXME
 
             if (visualize)
             {
@@ -363,18 +398,20 @@ namespace MazeGenerator
 
                 return result;
             }
+
+            return farest;
         }
 
         static void Main(string[] args)
         {
-            int Height = 120, Width = 24;
+            int Height = 8, Width = 8;
             int height = Height * 2 + 1, width = Width * 2 + 1;
             
             var matrix = GetDottedMatrix(width, height);
 
             DrawBitArray(matrix, width, height);
 
-            GenerateMaze(matrix, width, height, new Cell(1, 1), true);
+            var StartEnd = GenerateMaze(matrix, width, height, new Cell(1, 1), true);
 
             DrawBitArray(matrix, width, height);
 
@@ -408,7 +445,14 @@ namespace MazeGenerator
 
             DrawMaze(maze, width, height);
 
-            while(true)
+            Console.BackgroundColor = ConsoleColor.Red;
+            Console.SetCursorPosition(StartEnd.Item1.x * 2, StartEnd.Item1.y * 2);
+            Console.Write(' ');
+            Console.BackgroundColor = ConsoleColor.Green;
+            Console.SetCursorPosition(StartEnd.Item2.x * 2, StartEnd.Item2.y * 2);
+            Console.Write(' ');
+
+            while (true)
                 Console.ReadKey(true);
         }
 
