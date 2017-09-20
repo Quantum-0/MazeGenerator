@@ -60,23 +60,30 @@ namespace MazeGenerator
         {
             var dist = GetDistanceMatrix();
             var n = nodes.Count;
-            Console.BackgroundColor = ConsoleColor.Black;
 
+            
+            //Console.BackgroundColor = ConsoleColor.Black;
+            /*
             Console.Clear();
-            for (int i = 0; i < n; i++)
+            for (int i = -1; i < n; i++)
             {
+                Console.Write((char)((byte)'A' + i));
                 for (int j = 0; j < n; j++)
                 {
-                    Console.Write(string.Format(" {0,2}", dist[i, j]));
+                    if (i == -1)
+                        Console.Write(string.Format(" {0,2}", (char)((byte)'A' + j)));
+                    else
+                        Console.Write(string.Format(" {0,2}", i < j ? dist[i, j] : dist[j, i]));
                 }
                 Console.WriteLine();
             }
             Console.ReadKey();
-
-            // FIXME
-            for (int l = 0; l < n; l++)
+            */
+            
+            //int[,] temp = (int[,])dist.Clone();
+            for (int l = 0; l < Math.Sqrt(n); l++)
             {
-                Console.Clear();
+                //Console.Clear();
                 for (int i = 0; i < n; i++)
                 {
                     for (int j = i + 1; j < n; j++)
@@ -96,10 +103,8 @@ namespace MazeGenerator
 
                                 if (dist[a1, a2] != -1 && dist[b1, b2] != -1)
                                 {    
-                                    //if (dist[a1, a2] + dist[b1, b2] < dist[i, j])
                                     if (!min.HasValue || min.Value > dist[a1, a2] + dist[b1, b2])
-                                    min = dist[a1, a2] + dist[b1, b2];
-                                    break;
+                                        min = dist[a1, a2] + dist[b1, b2];
                                 }
                             }
                             dist[i, j] = min ?? -1;
@@ -107,15 +112,21 @@ namespace MazeGenerator
                     }
                 }
 
-                for (int i = 0; i < n; i++)
+                //dist = temp;
+
+                /*for (int i = -1; i < n; i++)
                 {
+                    Console.Write((char)((byte)'A' + i));
                     for (int j = 0; j < n; j++)
                     {
-                        Console.Write(string.Format(" {0,2}", dist[i,j]));
+                        if (i == -1)
+                            Console.Write(string.Format(" {0,2}", (char)((byte)'A' + j)));
+                        else
+                            Console.Write(string.Format(" {0,2}", i < j ? dist[i, j] : dist[j, i]));
                     }
                     Console.WriteLine();
                 }
-                Console.ReadKey();
+                Console.ReadKey();*/
             }
 
             int x = 0, y = 0;
@@ -130,11 +141,19 @@ namespace MazeGenerator
                 }
             }
 
-            Console.Clear();
+            //Console.Clear();
 
 
 
             return new Tuple<Cell, Cell>(nodes[x].pos.Value, nodes[y].pos.Value);
+        }
+
+        public Node[] Nodes
+        {
+            get
+            {
+                return nodes.ToArray();
+            }
         }
 
         public Node First
@@ -175,6 +194,16 @@ namespace MazeGenerator
                 else
                     return null;
             }
+        }
+
+        internal void SetLast(Node node)
+        {
+            var i = nodes.IndexOf(node);
+            var j = nodes.Count - 1;
+
+            var temp = nodes[j];
+            nodes[j] = nodes[i];
+            nodes[i] = temp;
         }
     }
 

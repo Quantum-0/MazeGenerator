@@ -5,6 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+/*
+ * TODO:
+ * - comments
+ */
+
 namespace MazeGenerator
 {
     struct Cell
@@ -29,8 +34,8 @@ namespace MazeGenerator
         {
             BitArray matrix = new BitArray(height * width, false);
 
-            for (int j = 1; j < height; j+=2)
-                for (int i = 1; i < width; i+=2)
+            for (int j = 1; j < height; j += 2)
+                for (int i = 1; i < width; i += 2)
                     matrix[j * width + i] = true;
 
             return matrix;
@@ -54,19 +59,19 @@ namespace MazeGenerator
             {
                 for (int i = 1; i < width - 1; i++)
                 {
-                         if (maze[i - 1, j] == MazeCell.Wall  && maze[i + 1, j] == MazeCell.Empty &&
-                        maze[i, j - 1] != MazeCell.Wall && maze[i, j + 1] != MazeCell.Wall)
+                    if (maze[i - 1, j] == MazeCell.Wall && maze[i + 1, j] == MazeCell.Empty &&
+                   maze[i, j - 1] != MazeCell.Wall && maze[i, j + 1] != MazeCell.Wall)
                         maze[i, j] = MazeCell.SideLeft;
 
                     else if (maze[i - 1, j] == MazeCell.Empty && maze[i + 1, j] == MazeCell.Wall &&
                         maze[i, j - 1] != MazeCell.Wall && maze[i, j + 1] != MazeCell.Wall)
                         maze[i, j] = MazeCell.SideRight;
 
-                    else if (maze[i - 1, j] != MazeCell.Wall  && maze[i + 1, j] != MazeCell.Wall &&
+                    else if (maze[i - 1, j] != MazeCell.Wall && maze[i + 1, j] != MazeCell.Wall &&
                         maze[i, j - 1] == MazeCell.Wall && maze[i, j + 1] == MazeCell.Empty)
                         maze[i, j] = MazeCell.SideTop;
 
-                    else if (maze[i - 1, j] != MazeCell.Wall  && maze[i + 1, j] != MazeCell.Wall &&
+                    else if (maze[i - 1, j] != MazeCell.Wall && maze[i + 1, j] != MazeCell.Wall &&
                         maze[i, j - 1] == MazeCell.Empty && maze[i, j + 1] == MazeCell.Wall)
                         maze[i, j] = MazeCell.SideBottom;
                 }
@@ -166,20 +171,20 @@ namespace MazeGenerator
                             }
                         }
 
-                        if (maze[i, j] == MazeCell.Empty)
-                            if (maze[i, j + 2] == MazeCell.Empty)
+                    if (maze[i, j] == MazeCell.Empty)
+                        if (maze[i, j + 2] == MazeCell.Empty)
 
+                        {
+
+                            maze[i, j + 1] = MazeCell.Empty;
+
+                            if (visualize)
                             {
-
-                                maze[i, j + 1] = MazeCell.Empty;
-
-                                if (visualize)
-                                {
-                                    Console.SetCursorPosition(i, j + 1);
-                                    Console.Write(' ');
-                                    Task.Delay(3).Wait();
-                                }
+                                Console.SetCursorPosition(i, j + 1);
+                                Console.Write(' ');
+                                Task.Delay(3).Wait();
                             }
+                        }
                 }
             }
         }
@@ -234,12 +239,10 @@ namespace MazeGenerator
 
         static void DrawBitArray(BitArray matrix, int width, int height, ConsoleColor wall = ConsoleColor.DarkRed, ConsoleColor empty = ConsoleColor.Black)
         {
-            /*Console.BackgroundColor = ConsoleColor.Black;
-            Console.Clear();*/
             Console.SetCursorPosition(0, 0);
-            for (int j = 0; j < height; j ++)
+            for (int j = 0; j < height; j++)
             {
-                for (int i = 0; i < width; i ++)
+                for (int i = 0; i < width; i++)
                 {
                     Console.BackgroundColor = !matrix[j * width + i] ? wall : empty;
                     Console.Write(' ');
@@ -251,14 +254,14 @@ namespace MazeGenerator
             }
         }
 
-        static Tuple<Cell,Cell> GenerateMaze(BitArray matrix, int width, int height, Cell start, bool visualize = true, 
-            ConsoleColor currentColor = ConsoleColor.Green, ConsoleColor visitedColor = ConsoleColor.DarkGreen, 
+        static Tuple<Cell, Cell> GenerateMaze(BitArray matrix, int width, int height, Cell start, bool visualize = true,
+            ConsoleColor currentColor = ConsoleColor.Green, ConsoleColor visitedColor = ConsoleColor.DarkGreen,
             ConsoleColor stepBackColor = ConsoleColor.DarkCyan, ConsoleColor currentStepBackColor = ConsoleColor.Cyan,
             ConsoleColor deadEndColor = ConsoleColor.Magenta, ConsoleColor forkColor = ConsoleColor.DarkBlue)
         {
             BitArray visited = new BitArray(height * width);
             Stack<Cell> stack = new Stack<Cell>();
-            Random rnd = new Random(1);
+            Random rnd = new Random();
             Graph graph = new Graph();
             int distance = 0;
 
@@ -297,7 +300,7 @@ namespace MazeGenerator
                         Console.SetCursorPosition(nei.x, nei.y);
                         Console.Write(' ');
                         Task.Delay(2).Wait();
-                        
+
                         Console.BackgroundColor = visitedColor;
                         Console.SetCursorPosition(wall.x, wall.y);
                         Console.Write(' ');
@@ -308,7 +311,7 @@ namespace MazeGenerator
                         Console.SetCursorPosition(current.x, current.y);
                         Console.Write(' ');
 
-                        
+
                     }
 
                     if (Back)
@@ -318,7 +321,7 @@ namespace MazeGenerator
                         distance = 0;
                         Back = false;
                     }
-                    
+
                     current = nei;
                 }
                 else if (stack.Count > 0)
@@ -345,6 +348,7 @@ namespace MazeGenerator
                     {
                         curnode = graph[current];
                         graph.Associate(graph.Last, curnode, distance);
+                        graph.SetLast(curnode);
                         distance = 0;
                     }
 
@@ -371,6 +375,23 @@ namespace MazeGenerator
             }
             while (true);
             graph.Associate(curnode, graph.AddNodePos(current), distance);
+
+            if (visualize)
+            {
+                Task.Delay(300).Wait();
+                var nds = graph.Nodes;
+                for (int i = 0; i < nds.Length; i++)
+                {
+                    var A = (byte)'A';
+                    Console.BackgroundColor = ConsoleColor.Yellow;
+                    Console.ForegroundColor = ConsoleColor.Black;
+                    Console.SetCursorPosition(nds[i].pos.Value.x, nds[i].pos.Value.y);
+                    Console.Write((char)(A + i));
+                }
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Task.Delay(1000).Wait();
+            }
 
             var farest = graph.GetFarest(); // FIXME
 
@@ -402,60 +423,135 @@ namespace MazeGenerator
             return farest;
         }
 
-        static void Main(string[] args)
+        static void SelectSize(out int Width, out int Height)
         {
-            int Height = 8, Width = 8;
-            int height = Height * 2 + 1, width = Width * 2 + 1;
-            
-            var matrix = GetDottedMatrix(width, height);
+            int MaxWidth = Math.Min(Console.BufferWidth, Console.WindowWidth) / 4 - 1;
+            int MaxHeight = Math.Min(Console.BufferHeight, Console.WindowHeight) / 4 - 1;
 
-            DrawBitArray(matrix, width, height);
+            Console.Clear();
+            Console.WriteLine();
+            Console.WriteLine("Выберите размер лабиринта:");
+            Console.WriteLine();
 
-            var StartEnd = GenerateMaze(matrix, width, height, new Cell(1, 1), true);
+            List<Tuple<int, int>> Sizes = new Tuple<int, int>[] {new Tuple<int, int>(3,3), new Tuple<int, int>(3,5),
+                new Tuple<int, int>(4,4), new Tuple<int, int>(5,5), new Tuple<int, int>(8,6), new Tuple<int, int>(7,7),
+                new Tuple<int, int>(8,8), new Tuple<int, int>(9,9), new Tuple<int, int>(10, 10), new Tuple<int, int>(12, 12),
+                new Tuple<int, int>(15, 15), new Tuple<int, int>(16,10), new Tuple<int, int>(16,12),
+                new Tuple<int, int>(16, 16), new Tuple<int, int>(20, 10), new Tuple<int, int>(20, 16), new Tuple<int, int>(24, 12),
+                new Tuple<int, int>(24, 20), new Tuple<int, int>(30, 20), new Tuple<int, int>(32, 12), new Tuple<int, int>(32, 32),
+                new Tuple<int, int>(40, 40), new Tuple<int, int>(MaxWidth, MaxHeight)}.ToList();
+            Sizes.RemoveAll(t => t.Item1 > MaxWidth || t.Item2 > MaxHeight);
 
-            DrawBitArray(matrix, width, height);
+            for (int i = 0; i < Sizes.Count; i++)
+            {
+                Console.WriteLine($" {i}) {Sizes[i].Item1}x{Sizes[i].Item2}");
+            }
 
-            Task.Delay(250).Wait();
+            Console.WriteLine();
+            Width = Height = 0;
+            do
+            {
+                Console.Write(">");
+                var str = Console.ReadLine();
+                if (!int.TryParse(str, out int selected))
+                {
+                    Console.WriteLine("Введите число");
+                    continue;
+                }
 
-            var maze = ScaleMatrixAndConvertToMaze(matrix, ref width, ref height);
+                if (selected < 0 || selected >= Sizes.Count)
+                {
+                    Console.WriteLine($"Введите число от 0 до {Sizes.Count - 1}");
+                    continue;
+                }
 
-            Task.Delay(250).Wait();
+                Width = Sizes[selected].Item1;
+                Height = Sizes[selected].Item2;
+            }
+            while (Width == 0);
+        }
 
-            DrawMaze(maze, width, height);
+        private static void SelectShowGeneration(out bool show)
+        {
+            Console.WriteLine("\nОтображать генерацию лабиринта? (Y/N)");
+            bool? result = null;
+            do
+            {
+                var key = Console.ReadKey(true).Key;
+                if (key == ConsoleKey.Y)
+                    result = true;
+                else if (key == ConsoleKey.N)
+                    result = false;
+            }
+            while (!result.HasValue);
+            Console.WriteLine(result.Value ? " YES ": " NO ");
+            show = result.Value;
+        }
 
-            Task.Delay(250).Wait();
-
-            MergeEmptyAndWalls(maze, width, height, true);
-
-            Task.Delay(300).Wait();
-
-            AddWalls(maze, width, height);
-
-            DrawMaze(maze, width, height);
-
-            Task.Delay(500).Wait();
-
-            AddCorners(maze, width, height);
-
-            DrawMaze(maze, width, height);
-
-            Task.Delay(500).Wait();
-
-            AddInnerCorners(maze, width, height);
-
-            DrawMaze(maze, width, height);
-
+        private static void DrawStartEnd(Tuple<Cell, Cell> StartEnd)
+        {
             Console.BackgroundColor = ConsoleColor.Red;
             Console.SetCursorPosition(StartEnd.Item1.x * 2, StartEnd.Item1.y * 2);
             Console.Write(' ');
             Console.BackgroundColor = ConsoleColor.Green;
             Console.SetCursorPosition(StartEnd.Item2.x * 2, StartEnd.Item2.y * 2);
             Console.Write(' ');
+        }
 
+        static void Main(string[] args)
+        {
+            SelectSize(out int Width, out int Height);
+            SelectShowGeneration(out bool Show);
+
+            Console.Clear();
+            Console.CursorVisible = false;
+
+            int height = Height * 2 + 1, width = Width * 2 + 1;
+
+            BitArray Matrix;
+            Tuple<Cell, Cell> StartEnd;
+            MazeCell[,] Maze;
+            if (Show)
+            {
+                Matrix = GetDottedMatrix(width, height);
+                DrawBitArray(Matrix, width, height);
+                StartEnd = GenerateMaze(Matrix, width, height, new Cell(1, 1), visualize: true);
+                DrawBitArray(Matrix, width, height);
+                Task.Delay(250).Wait();
+                Maze = ScaleMatrixAndConvertToMaze(Matrix, ref width, ref height);
+                DrawMaze(Maze, width, height);
+                Task.Delay(250).Wait();
+                MergeEmptyAndWalls(Maze, width, height, visualize: true);
+                DrawMaze(Maze, width, height);
+                Task.Delay(300).Wait();
+                AddWalls(Maze, width, height);
+                DrawMaze(Maze, width, height);
+                Task.Delay(500).Wait();
+                AddCorners(Maze, width, height);
+                DrawMaze(Maze, width, height);
+                Task.Delay(500).Wait();
+                AddInnerCorners(Maze, width, height);
+                DrawMaze(Maze, width, height);
+                Task.Delay(100).Wait();
+                DrawStartEnd(StartEnd);
+            }
+            else
+            {
+                Matrix = GetDottedMatrix(width, height);
+                StartEnd = GenerateMaze(Matrix, width, height, new Cell(1, 1), visualize: false);
+                Maze = ScaleMatrixAndConvertToMaze(Matrix, ref width, ref height);
+                MergeEmptyAndWalls(Maze, width, height, visualize: false);
+                AddWalls(Maze, width, height);
+                AddCorners(Maze, width, height);
+                AddInnerCorners(Maze, width, height);
+                DrawMaze(Maze, width, height);
+                DrawStartEnd(StartEnd);
+            }
+            
             while (true)
                 Console.ReadKey(true);
         }
-
+        
         enum MazeCell
         {
             Undefined = 0,
