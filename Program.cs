@@ -254,7 +254,7 @@ namespace MazeGenerator
             }
         }
 
-        static Tuple<Cell, Cell> GenerateMaze(BitArray matrix, int width, int height, Cell start, bool visualize = true,
+        static Tuple<Cell, Cell> GenerateMaze(BitArray matrix, int width, int height, Cell start, out Graph graph, bool visualize = true,
             ConsoleColor currentColor = ConsoleColor.Green, ConsoleColor visitedColor = ConsoleColor.DarkGreen,
             ConsoleColor stepBackColor = ConsoleColor.DarkCyan, ConsoleColor currentStepBackColor = ConsoleColor.Cyan,
             ConsoleColor deadEndColor = ConsoleColor.Magenta, ConsoleColor forkColor = ConsoleColor.DarkBlue)
@@ -262,7 +262,7 @@ namespace MazeGenerator
             BitArray visited = new BitArray(height * width);
             Stack<Cell> stack = new Stack<Cell>();
             Random rnd = new Random();
-            Graph graph = new Graph();
+            graph = new Graph();
             int distance = 0;
 
             bool Back = false;
@@ -374,6 +374,8 @@ namespace MazeGenerator
                     break;
             }
             while (true);
+            if (curnode == null)
+                curnode = graph.First;
             graph.Associate(curnode, graph.AddNodePos(current), distance);
 
             if (visualize)
@@ -511,11 +513,14 @@ namespace MazeGenerator
             BitArray Matrix;
             Tuple<Cell, Cell> StartEnd;
             MazeCell[,] Maze;
+            Graph Graph;
+            Random rnd = new Random();
+
             if (Show)
             {
                 Matrix = GetDottedMatrix(width, height);
                 DrawBitArray(Matrix, width, height);
-                StartEnd = GenerateMaze(Matrix, width, height, new Cell(1, 1), visualize: true);
+                StartEnd = GenerateMaze(Matrix, width, height, new Cell(1 + 2 * rnd.Next(width / 4), 1 + 2 * rnd.Next(width / 4)), visualize: true, graph: out Graph);
                 DrawBitArray(Matrix, width, height);
                 Task.Delay(250).Wait();
                 Maze = ScaleMatrixAndConvertToMaze(Matrix, ref width, ref height);
@@ -538,7 +543,7 @@ namespace MazeGenerator
             else
             {
                 Matrix = GetDottedMatrix(width, height);
-                StartEnd = GenerateMaze(Matrix, width, height, new Cell(1, 1), visualize: false);
+                StartEnd = GenerateMaze(Matrix, width, height, new Cell(1, 1), visualize: false, graph: out Graph);
                 Maze = ScaleMatrixAndConvertToMaze(Matrix, ref width, ref height);
                 MergeEmptyAndWalls(Maze, width, height, visualize: false);
                 AddWalls(Maze, width, height);
@@ -552,10 +557,10 @@ namespace MazeGenerator
             while (true)
                 Console.ReadKey(true);*/
 
-            Play(Maze, StartEnd, Width, Height);
+            Play(Maze, Graph, StartEnd, Width, Height);
         }
 
-        private static void Play(MazeCell[,] maze, Tuple<Cell, Cell> startEnd, int width, int height)
+        private static void Play(MazeCell[,] maze, Graph graph, Tuple<Cell, Cell> startEnd, int width, int height)
         {
             var Player = new Cell(startEnd.Item1.x * 2, startEnd.Item1.y * 2);
             var Finish = new Cell(startEnd.Item2.x * 2, startEnd.Item2.y * 2);
@@ -571,51 +576,61 @@ namespace MazeGenerator
                 switch (dir)
                 {
                     case Direction.Left:
-                        //while(maze[Player.x - 1, Player.y] == MazeCell.Empty)
-                        if (maze[Player.x - 2, Player.y] == MazeCell.Empty)
+                        while(maze[Player.x - 1, Player.y] == MazeCell.Empty)
+                        //if (maze[Player.x - 2, Player.y] == MazeCell.Empty)
                         {
-                            Task.Delay(2).Wait();
+                            Task.Delay(20).Wait();
                             Console.SetCursorPosition(Player.x, Player.y);
                             Console.Write(' ');
-                            Player.x-=2;
+                            //Player.x-=2;
+                            Player.x--;
                             Console.SetCursorPosition(Player.x, Player.y);
                             Console.Write('O');
+                            if (Player.x % 2 != 1 && Player.y % 2 != 1)
+                                if (graph.IsNode(new Cell(Player.x / 2, Player.y / 2))) break;
                         }
                         break;
                     case Direction.Up:
-                        //while (maze[Player.x, Player.y - 1] == MazeCell.Empty)
-                        if (maze[Player.x, Player.y - 2] == MazeCell.Empty)
+                        while (maze[Player.x, Player.y - 1] == MazeCell.Empty)
+                        //if (maze[Player.x, Player.y - 2] == MazeCell.Empty)
                         {
-                            Task.Delay(2).Wait();
+                            Task.Delay(20).Wait();
                             Console.SetCursorPosition(Player.x, Player.y);
                             Console.Write(' ');
-                            Player.y-=2;
+                            Player.y--;
                             Console.SetCursorPosition(Player.x, Player.y);
                             Console.Write('O');
+                            if (Player.x % 2 != 1 && Player.y % 2 != 1)
+                                if (graph.IsNode(new Cell(Player.x / 2, Player.y / 2))) break;
                         }
                         break;
                     case Direction.Right:
-                        //while (maze[Player.x + 1, Player.y] == MazeCell.Empty)
-                        if (maze[Player.x + 2, Player.y] == MazeCell.Empty)
+                        while (maze[Player.x + 1, Player.y] == MazeCell.Empty)
+                        //if (maze[Player.x + 2, Player.y] == MazeCell.Empty)
                         {
-                            Task.Delay(2).Wait();
+                            Task.Delay(20).Wait();
                             Console.SetCursorPosition(Player.x, Player.y);
                             Console.Write(' ');
-                            Player.x+=2;
+                            Player.x++;
                             Console.SetCursorPosition(Player.x, Player.y);
                             Console.Write('O');
+                            if (Player.x % 2 != 1 && Player.y % 2 != 1)
+                                if (graph.IsNode(new Cell(Player.x / 2, Player.y / 2))) break;
                         }
                         break;
                     case Direction.Down:
-                        //while (maze[Player.x, Player.y + 1] == MazeCell.Empty)
-                        if (maze[Player.x, Player.y + 2] == MazeCell.Empty)
+                        while (maze[Player.x, Player.y + 1] == MazeCell.Empty)
+                        //if (maze[Player.x, Player.y + 2] == MazeCell.Empty)
                         {
-                            Task.Delay(2).Wait();
+                            Task.Delay(20).Wait();
                             Console.SetCursorPosition(Player.x, Player.y);
                             Console.Write(' ');
-                            Player.y+=2;
+                            //Player.y+=2;
+                            Player.y++;
                             Console.SetCursorPosition(Player.x, Player.y);
                             Console.Write('O');
+                            if (Player.x % 2 != 1 && Player.y % 2 != 1)
+                                if (graph.IsNode(new Cell(Player.x / 2, Player.y / 2))) break;
                         }
                         break;
                 }
