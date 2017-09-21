@@ -547,11 +547,111 @@ namespace MazeGenerator
                 DrawMaze(Maze, width, height);
                 DrawStartEnd(StartEnd);
             }
-            
+
+            /*
             while (true)
-                Console.ReadKey(true);
+                Console.ReadKey(true);*/
+
+            Play(Maze, StartEnd, Width, Height);
         }
-        
+
+        private static void Play(MazeCell[,] maze, Tuple<Cell, Cell> startEnd, int width, int height)
+        {
+            var Player = new Cell(startEnd.Item1.x * 2, startEnd.Item1.y * 2);
+            var Finish = new Cell(startEnd.Item2.x * 2, startEnd.Item2.y * 2);
+
+            Console.SetCursorPosition(Player.x, Player.y);
+
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.Green;
+
+            while (Player.x != Finish.x || Player.y != Finish.y)
+            {
+                var dir = KeyToDir(Console.ReadKey(true).Key);
+                switch (dir)
+                {
+                    case Direction.Left:
+                        //while(maze[Player.x - 1, Player.y] == MazeCell.Empty)
+                        if (maze[Player.x - 2, Player.y] == MazeCell.Empty)
+                        {
+                            Task.Delay(2).Wait();
+                            Console.SetCursorPosition(Player.x, Player.y);
+                            Console.Write(' ');
+                            Player.x-=2;
+                            Console.SetCursorPosition(Player.x, Player.y);
+                            Console.Write('O');
+                        }
+                        break;
+                    case Direction.Up:
+                        //while (maze[Player.x, Player.y - 1] == MazeCell.Empty)
+                        if (maze[Player.x, Player.y - 2] == MazeCell.Empty)
+                        {
+                            Task.Delay(2).Wait();
+                            Console.SetCursorPosition(Player.x, Player.y);
+                            Console.Write(' ');
+                            Player.y-=2;
+                            Console.SetCursorPosition(Player.x, Player.y);
+                            Console.Write('O');
+                        }
+                        break;
+                    case Direction.Right:
+                        //while (maze[Player.x + 1, Player.y] == MazeCell.Empty)
+                        if (maze[Player.x + 2, Player.y] == MazeCell.Empty)
+                        {
+                            Task.Delay(2).Wait();
+                            Console.SetCursorPosition(Player.x, Player.y);
+                            Console.Write(' ');
+                            Player.x+=2;
+                            Console.SetCursorPosition(Player.x, Player.y);
+                            Console.Write('O');
+                        }
+                        break;
+                    case Direction.Down:
+                        //while (maze[Player.x, Player.y + 1] == MazeCell.Empty)
+                        if (maze[Player.x, Player.y + 2] == MazeCell.Empty)
+                        {
+                            Task.Delay(2).Wait();
+                            Console.SetCursorPosition(Player.x, Player.y);
+                            Console.Write(' ');
+                            Player.y+=2;
+                            Console.SetCursorPosition(Player.x, Player.y);
+                            Console.Write('O');
+                        }
+                        break;
+                }
+            }
+        }
+
+        static Direction KeyToDir(ConsoleKey key)
+        {
+            switch (key)
+            {
+                case ConsoleKey.LeftArrow:
+                case ConsoleKey.A:
+                    return Direction.Left;
+                case ConsoleKey.UpArrow:
+                case ConsoleKey.W:
+                    return Direction.Up;
+                case ConsoleKey.RightArrow:
+                case ConsoleKey.D:
+                    return Direction.Right;
+                case ConsoleKey.DownArrow:
+                case ConsoleKey.S:
+                    return Direction.Down;
+                default:
+                    return Direction.Undefined;
+            }
+        }
+
+        enum Direction
+        {
+            Undefined,
+            Left,
+            Up,
+            Right,
+            Down
+        }
+
         enum MazeCell
         {
             Undefined = 0,
